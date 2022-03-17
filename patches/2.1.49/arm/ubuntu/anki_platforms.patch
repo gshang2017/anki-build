@@ -1,0 +1,16 @@
+--- anki-2.1.49/platforms/BUILD.bazel
++++ anki-2.1.49_arm/platforms/BUILD.bazel
+@@ -30,4 +30,13 @@ config_setting(
+         "@platforms//os:linux",
+         "@platforms//cpu:aarch64",
+     ],
++
++)
++
++config_setting(
++    name = "linux_arm",
++    constraint_values = [
++        "@platforms//os:linux",
++        "@platforms//cpu:arm",
++    ],
+ )

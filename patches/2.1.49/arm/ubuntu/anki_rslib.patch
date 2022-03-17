@@ -1,0 +1,18 @@
+--- anki-2.1.49/rslib/BUILD.bazel
++++ anki-2.1.49_arm/rslib/BUILD.bazel
+@@ -123,6 +123,7 @@ rust_library(
+         # rustls on Linux
+         "//platforms:linux_x86_64": ["@reqwest_rustls//:reqwest"],
+         "//platforms:linux_arm64": ["@reqwest_rustls//:reqwest"],
++        "//platforms:linux_arm": ["@reqwest_rustls//:reqwest"],
+         # native tls on other platforms
+         "//conditions:default": ["//rslib/cargo:reqwest"],
+     }),
+@@ -165,6 +166,7 @@ rust_test(
+         # rustls on Linux
+         "//platforms:linux_x86_64": ["@reqwest_rustls//:reqwest"],
+         "//platforms:linux_arm64": ["@reqwest_rustls//:reqwest"],
++        "//platforms:linux_arm": ["@reqwest_rustls//:reqwest"],
+         # native tls on other platforms
+         "//conditions:default": ["//rslib/cargo:reqwest"],
+     }),

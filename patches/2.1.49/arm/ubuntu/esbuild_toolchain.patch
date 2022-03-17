@@ -1,0 +1,64 @@
+--- anki-2.1.49/esbuild_toolchain/esbuild_repo.bzl
++++ anki-2.1.49_arm/esbuild_toolchain/esbuild_repo.bzl
+@@ -51,4 +51,13 @@ def esbuild_dependencies():
+         sha256 = "60af935fc3c29d6defd6e3822d9a00220dc631f4aba5cf5af3ce12d2d0d268e6",
+     )
+
++    http_archive(
++        name = "esbuild_linux_arm",
++        urls = [
++            "https://registry.npmjs.org/esbuild-linux-arm/-/esbuild-linux-arm-%s.tgz" % version,
++        ],
++        strip_prefix = "package",
++        build_file_content = """exports_files(["bin/esbuild"])""",
++        sha256 = "c09dcabb12cbeb25f2880604f84fdfee48f3dd2439d160b81db5f97101246d8a",
++    )
+     register_default_toolchains()
+--- anki-2.1.49/esbuild_toolchain/toolchain.bzl
++++ anki-2.1.49_arm/esbuild_toolchain/toolchain.bzl
+@@ -16,6 +16,7 @@ _default_toolchains = [
+     ["@esbuild_darwin//:bin/esbuild", "macos"],
+     ["@esbuild_linux//:bin/esbuild", "linux"],
+     ["@esbuild_linux_arm64//:bin/esbuild", "linux_arm64"],
++    ["@esbuild_linux_arm//:bin/esbuild", "linux_arm"],
+     ["@esbuild_windows//:esbuild.exe", "windows"],
+ ]
+
+@@ -26,12 +27,23 @@ def define_default_toolchains():
+             binary = repo_path,
+         )
+
+-        if platform != "linux_arm64":
++        if platform == "linux_arm64":
+             native.toolchain(
+                 name = "esbuild_{}_toolchain".format(platform),
+                 exec_compatible_with = [
+-                    "@platforms//os:" + platform,
+-                    "@platforms//cpu:x86_64",
++                    "@platforms//os:linux",
++                    "@platforms//cpu:aarch64",
++                ],
++                toolchain = ":esbuild_" + platform,
++                toolchain_type = ":toolchain_type",
++            )
++
++        elif platform == "linux_arm":
++            native.toolchain(
++                name = "esbuild_{}_toolchain".format(platform),
++                exec_compatible_with = [
++                    "@platforms//os:linux",
++                    "@platforms//cpu:arm",
+                 ],
+                 toolchain = ":esbuild_" + platform,
+                 toolchain_type = ":toolchain_type",
+@@ -41,8 +53,8 @@ def define_default_toolchains():
+             native.toolchain(
+                 name = "esbuild_{}_toolchain".format(platform),
+                 exec_compatible_with = [
+-                    "@platforms//os:linux",
+-                    "@platforms//cpu:aarch64",
++                    "@platforms//os:" + platform,
++                    "@platforms//cpu:x86_64",
+                 ],
+                 toolchain = ":esbuild_" + platform,
+                 toolchain_type = ":toolchain_type",

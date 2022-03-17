@@ -1,0 +1,105 @@
+--- anki-2.1.49/build_bazel_rules_nodejs/internal/common/os_name.bzl
++++ anki-2.1.49_arm/build_bazel_rules_nodejs/internal/common/os_name.bzl
+@@ -21,6 +21,7 @@ OS_ARCH_NAMES = [
+     ("linux", "amd64"),
+     ("linux", "arm64"),
+     ("linux", "s390x"),
++    ("linux", "arm"),
+ ]
+
+ OS_NAMES = ["_".join(os_arch_name) for os_arch_name in OS_ARCH_NAMES]
+@@ -46,6 +47,8 @@ def os_name(rctx):
+             return OS_NAMES[3]
+         elif arch == "s390x":
+             return OS_NAMES[4]
++        elif arch == "armv7l":
++            return OS_NAMES[5]
+         else:
+             return OS_NAMES[2]
+     else:
+@@ -59,4 +62,4 @@ def is_windows_os(rctx):
+
+ def is_linux_os(rctx):
+     name = os_name(rctx)
+-    return name == OS_NAMES[2] or name == OS_NAMES[3] or name == OS_NAMES[4]
++    return name == OS_NAMES[2] or name == OS_NAMES[3] or name == OS_NAMES[4] or name == OS_NAMES[5]
+--- anki-2.1.49/build_bazel_rules_nodejs/internal/node/launcher.sh
++++ anki-2.1.49_arm/build_bazel_rules_nodejs/internal/node/launcher.sh
+@@ -135,6 +135,7 @@ else
+     *)
+       case "${unameArch}" in
+         aarch64*) readonly node_toolchain="nodejs_linux_arm64/bin/nodejs/bin/node" ;;
++        arm*) readonly node_toolchain="nodejs_linux_arm/bin/nodejs/bin/node" ;;
+         s390x*) readonly node_toolchain="nodejs_linux_s390x/bin/nodejs/bin/node" ;;
+         *) readonly node_toolchain="nodejs_linux_amd64/bin/nodejs/bin/node" ;;
+       esac
+--- anki-2.1.49/build_bazel_rules_nodejs/internal/node/node_repositories.bzl
++++ anki-2.1.49_arm/build_bazel_rules_nodejs/internal/node/node_repositories.bzl
+@@ -237,6 +237,7 @@ BUILT_IN_NODE_PLATFORMS = [
+     "darwin_amd64",
+     "linux_amd64",
+     "linux_arm64",
++    "linux_arm",
+     "windows_amd64",
+     "linux_s390x",
+ ]
+--- anki-2.1.49/build_bazel_rules_nodejs/internal/node/node_versions.bzl
++++ anki-2.1.49_arm/build_bazel_rules_nodejs/internal/node/node_versions.bzl
+@@ -787,6 +787,7 @@ NODE_VERSIONS = {
+     # 12.13.0
+     "12.13.0-darwin_amd64": ("node-v12.13.0-darwin-x64.tar.gz", "node-v12.13.0-darwin-x64", "49a7374670a111b033ce16611b20fd1aafd3296bbc662b184fe8fb26a29c22cc"),
+     "12.13.0-linux_arm64": ("node-v12.13.0-linux-arm64.tar.xz", "node-v12.13.0-linux-arm64", "d65b3ce27639f15ae22941e3ff98a1c900aa9049fcc15518038615b0676037d5"),
++    "12.13.0-linux_arm": ("node-v12.13.0-linux-armv7l.tar.xz", "node-v12.13.0-linux-armv7l", "961af6a5c4656967cc69198ea354d9ca77606abae1d1c2ae60505a5b06f54cde"),
+     "12.13.0-linux_s390x": ("node-v12.13.0-linux-s390x.tar.xz", "node-v12.13.0-linux-s390x", "a4d6518bd90dd4380a4c7f2c6ff9b78bc57f53ec34fbf03dc15cb47738621f13"),
+     "12.13.0-linux_amd64": ("node-v12.13.0-linux-x64.tar.xz", "node-v12.13.0-linux-x64", "7a57ef2cb3036d7eacd50ae7ba07245a28336a93652641c065f747adb2a356d9"),
+     "12.13.0-windows_amd64": ("node-v12.13.0-win-x64.zip", "node-v12.13.0-win-x64", "6f920cebeecb4957b4ef0def6d9b04c49d4582864f8d1a207ce8d0665865781a"),
+--- anki-2.1.49/build_bazel_rules_nodejs/toolchains/node/BUILD.bazel
++++ anki-2.1.49_arm/build_bazel_rules_nodejs/toolchains/node/BUILD.bazel
+@@ -52,6 +52,14 @@ platform(
+ )
+
+ platform(
++    name = "linux_arm",
++    constraint_values = [
++        "@platforms//os:linux",
++        "@platforms//cpu:arm",
++    ],
++)
++
++platform(
+     name = "windows_amd64",
+     constraint_values = [
+         "@platforms//os:windows",
+@@ -93,6 +101,7 @@ alias(
+         "@bazel_tools//src/conditions:darwin_arm64": "@nodejs_darwin_arm64_config//:toolchain",
+         "@bazel_tools//src/conditions:darwin_x86_64": "@nodejs_darwin_amd64_config//:toolchain",
+         "@bazel_tools//src/conditions:linux_aarch64": "@nodejs_linux_arm64_config//:toolchain",
++        "@bazel_tools//src/conditions:linux_arm": "@nodejs_linux_arm_config//:toolchain",
+         "@bazel_tools//src/conditions:linux_s390x": "@nodejs_linux_s390x_config//:toolchain",
+         "@bazel_tools//src/conditions:linux_x86_64": "@nodejs_linux_amd64_config//:toolchain",
+         "@bazel_tools//src/conditions:windows": "@nodejs_windows_amd64_config//:toolchain",
+@@ -108,6 +117,7 @@ alias(
+         "@bazel_tools//src/conditions:darwin_arm64": "@nodejs_darwin_arm64//:node_bin",
+         "@bazel_tools//src/conditions:darwin_x86_64": "@nodejs_darwin_amd64//:node_bin",
+         "@bazel_tools//src/conditions:linux_aarch64": "@nodejs_linux_arm64//:node_bin",
++        "@bazel_tools//src/conditions:linux_arm": "@nodejs_linux_arm//:node_bin",
+         "@bazel_tools//src/conditions:linux_s390x": "@nodejs_linux_s390x//:node_bin",
+         "@bazel_tools//src/conditions:linux_x86_64": "@nodejs_linux_amd64//:node_bin",
+         "@bazel_tools//src/conditions:windows": "@nodejs_windows_amd64//:node_bin",
+@@ -136,6 +146,16 @@ toolchain(
+     toolchain_type = ":toolchain_type",
+ )
+
++toolchain(
++    name = "node_linux_arm_toolchain",
++    target_compatible_with = [
++        "@platforms//os:linux",
++        "@platforms//cpu:arm",
++    ],
++    toolchain = "@nodejs_linux_arm_config//:toolchain",
++    toolchain_type = ":toolchain_type",
++)
++
+ toolchain(
+     name = "node_darwin_amd64_toolchain",
+     target_compatible_with = [

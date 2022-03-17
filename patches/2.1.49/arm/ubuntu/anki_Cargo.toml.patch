@@ -1,0 +1,10 @@
+--- anki-2.1.49/Cargo.toml
++++ anki-2.1.49_arm/Cargo.toml
+@@ -27,6 +27,7 @@ targets = [
+     "x86_64-unknown-linux-gnu",
+     "aarch64-apple-ios",
+     "aarch64-unknown-linux-gnu",
++    "arm-unknown-linux-gnueabihf",
+ ]
+ genmode = "Remote"
+ default_gen_buildrs = true

@@ -1,0 +1,24 @@
+--- anki-2.1.49/proto/protobuf.bzl
++++ anki-2.1.49_arm/proto/protobuf.bzl
+@@ -15,7 +15,8 @@ alias(
+         "@ankidesktop//platforms:windows_x86_64": "@protoc_bin_windows//:bin/protoc.exe",
+         "@ankidesktop//platforms:macos_x86_64": "@protoc_bin_macos//:bin/protoc",
+         "@ankidesktop//platforms:linux_x86_64": "@protoc_bin_linux_x86_64//:bin/protoc",
+-        "@ankidesktop//platforms:linux_arm64": "@protoc_bin_linux_arm64//:bin/protoc"
++        "@ankidesktop//platforms:linux_arm64": "@protoc_bin_linux_arm64//:bin/protoc",
++        "@ankidesktop//platforms:linux_arm": "@local_protoc//:bin/protoc"
+     }),
+     visibility = ["//visibility:public"]
+ )
+@@ -68,6 +69,11 @@ def setup_protobuf_binary(name):
+         build_file_content = """exports_files(["bin/protoc.exe"])""",
+     )
+
++    native.local_repository(
++        name = "local_protoc",
++        path = "local_protoc",
++    )
++
+     if not native.existing_rule(name):
+         _setup_protoc(
+             name = name,

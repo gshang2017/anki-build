@@ -1,0 +1,105 @@
+--- anki-2.1.49/repos.bzl
++++ anki-2.1.49_arm/repos.bzl
+@@ -25,21 +25,21 @@ def register_repos():
+     # rust
+     ########
+
+-    # native.local_repository(
+-    #     name = "rules_rust",
+-    #     path = "../rules_rust",
+-    # )
+-
+-    maybe(
+-        http_archive,
++    native.local_repository(
+         name = "rules_rust",
+-        strip_prefix = "rules_rust-f66001a3ae396b7695e10ca451a6d89c024529a1",
+-        urls = [
+-            "https://github.com/bazelbuild/rules_rust/archive/f66001a3ae396b7695e10ca451a6d89c024529a1.zip",
+-        ],
+-        sha256 = "c6f1fe6056d8c3ed44a4eda4b8e6d327312a0ae17b36671c10fd849825edf55f",
++        path = "./rules_rust",
+     )
+
++    #maybe(
++    #    http_archive,
++    #    name = "rules_rust",
++    #    strip_prefix = "rules_rust-f66001a3ae396b7695e10ca451a6d89c024529a1",
++    #    urls = [
++    #        "https://github.com/bazelbuild/rules_rust/archive/f66001a3ae396b7695e10ca451a6d89c024529a1.zip",
++    #    ],
++    #    sha256 = "c6f1fe6056d8c3ed44a4eda4b8e6d327312a0ae17b36671c10fd849825edf55f",
++    #)
++
+     # python
+     ##########
+
+@@ -84,35 +84,47 @@ def register_repos():
+     #         "file:///Users/dae/Work/code/dtop/release.tar.gz",
+     #     ],
+     # )
++    #maybe(
++    #    http_archive,
++    #    name = "build_bazel_rules_nodejs",
++    #    sha256 = "5ee4622f460ddd7318a3ec600d4b3a7b09e7a1585c119fad139a5c28878048e7",
++    #    urls = [
++    #        "file:///data/anki-2.1.49/rules_nodejs-3.5.1.tar.gz",
++    #    ],
++    #)
++    native.local_repository(
++         name = "build_bazel_rules_nodejs",
++         path = "./build_bazel_rules_nodejs",
++    )
+
+     # when updating, remember to update pinned versions in package.json
+-    maybe(
+-        http_archive,
+-        name = "build_bazel_rules_nodejs",
+-        sha256 = "4a5d654a4ccd4a4c24eca5d319d85a88a650edf119601550c95bf400c8cc897e",
+-        urls = ["https://github.com/bazelbuild/rules_nodejs/releases/download/3.5.1/rules_nodejs-3.5.1.tar.gz"],
++    #maybe(
++    #    http_archive,
++    #    name = "build_bazel_rules_nodejs",
++    #    sha256 = "4a5d654a4ccd4a4c24eca5d319d85a88a650edf119601550c95bf400c8cc897e",
++    #    urls = ["https://github.com/bazelbuild/rules_nodejs/releases/download/3.5.1/rules_nodejs-3.5.1.tar.gz"],
++    #)
++
++    native.local_repository(
++         name = "esbuild_toolchain",
++         path = "./esbuild_toolchain",
+     )
+
+-    # native.local_repository(
+-    #     name = "esbuild_toolchain",
+-    #     path = "../esbuild_toolchain",
+-    # )
+-
+-    maybe(
+-        http_archive,
+-        name = "esbuild_toolchain",
+-        sha256 = "7385dfb2acce6517fcfdb16480cf18d1959bafb83d8cddc0c1e95779609f762c",
+-        urls = ["https://github.com/ankitects/esbuild_toolchain/archive/refs/tags/anki-2021-06-01.tar.gz"],
+-        strip_prefix = "esbuild_toolchain-anki-2021-06-01",
+-    )
++    #maybe(
++    #    http_archive,
++    #    name = "esbuild_toolchain",
++     #   sha256 = "7385dfb2acce6517fcfdb16480cf18d1959bafb83d8cddc0c1e95779609f762c",
++     #   urls = ["https://github.com/ankitects/esbuild_toolchain/archive/refs/tags/anki-2021-06-01.tar.gz"],
++    #    strip_prefix = "esbuild_toolchain-anki-2021-06-01",
++    #)
+
+     # sass
+     ############
+
+-    # native.local_repository(
+-    #     name = "io_bazel_rules_sass",
+-    #     path = "../rules_sass",
+-    # )
++    #native.local_repository(
++    #    name = "io_bazel_rules_sass",
++    #    path = "./rules_sass",
++    #)
+
+     maybe(
+         http_archive,

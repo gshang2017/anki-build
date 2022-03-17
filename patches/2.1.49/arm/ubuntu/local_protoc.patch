@@ -1,0 +1,4 @@
+--- anki-2.1.49/local_protoc/BUILD.bazel
++++ anki-2.1.49_arm/local_protoc/BUILD.bazel
+@@ -0,0 +1 @@
++exports_files(["bin/protoc"])

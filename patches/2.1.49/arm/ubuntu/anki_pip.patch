@@ -1,0 +1,11 @@
+--- anki-2.1.49/pip/requirements.txt
++++ anki-2.1.49_arm/pip/requirements.txt
+@@ -77,7 +77,7 @@ mypy-protobuf==2.4
+     # via -r requirements.in
+ mypy==0.902
+     # via -r requirements.in
+-orjson==3.5.3
++#orjson==3.5.3
+     # via -r requirements.in
+ packaging==20.9
+     # via pytest
