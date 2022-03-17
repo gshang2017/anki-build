@@ -1,0 +1,185 @@
+name: anki-ubuntu-build
+
+on:
+  push:
+    paths:
+    - 'patches/**'
+    - '.github/workflows/anki-ubuntu-build.yml'
+  workflow_dispatch:
+
+env:
+  BAZEL_VER: 4.2.2
+  ANKI_VER: 2.1.49
+  RULES_RUST_VER: f66001a3ae396b7695e10ca451a6d89c024529a1
+  RULES_BODEJS_VER: 3.5.1
+  ESBUILD_TOOLCHAIN_VER: "2021-06-01"
+
+jobs:
+  amd64_job:
+    runs-on: ubuntu-20.04
+    name: Build on ubuntu-20.04 amd64
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v2.1.0
+
+      - name: Build anki
+        id: buildanki
+        run: |
+          sudo apt-get update -q -y
+          sudo apt-get install -q -y curl wget apt-utils git rsync findutils curl gcc g++ rustc cargo nodejs python3 python3-pip python3-pyqt5 pyqt5-dev-tools python-is-python3
+          sudo curl -L https://github.com/bazelbuild/bazel/releases/download/${{ env.BAZEL_VER }}/bazel-${{ env.BAZEL_VER }}-linux-x86_64 -o /usr/local/bin/bazel
+          sudo chmod +x /usr/local/bin/bazel
+          mkdir anki-build
+          wget -P anki-build https://github.com/ankitects/anki/archive/refs/tags/${{ env.ANKI_VER }}.tar.gz --no-check-certificate
+          tar -zxf anki-build/${{ env.ANKI_VER }}.tar.gz --strip-components 1 -C anki-build
+          cd anki-build
+          echo "build --action_env=PYTHON_SITE_PACKAGES=/usr/lib/python3/dist-packages" >> user.bazelrc
+          bazel build -k -c opt dist
+          cd bazel-bin
+          tar -xf dist.tar
+          cd bazel-dist
+          tar -czf anki-${{ env.ANKI_VER }}-x86_64.tar.gz *.whl
+
+      - name: Create Release
+        id: create_release
+        uses: ncipollo/release-action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          allowUpdates: true
+          tag: v${{ env.ANKI_VER }}
+          name: ${{ env.ANKI_VER }}
+          body: |
+            anki-${{ env.ANKI_VER }}
+          draft: false
+          prerelease: false
+          artifacts: /home/runner/work/anki-build/anki-build/anki-build/bazel-bin/bazel-dist/anki-${{ env.ANKI_VER }}-x86_64.tar.gz
+
+  aarch64_job:
+    runs-on: ubuntu-20.04
+    name: Build on ubuntu-20.04 aarch64
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v2.1.0
+
+      - name: mkdir anki-build
+        run: |
+          mkdir anki-build
+          chmod 777 anki-build
+
+      - name: Build anki
+        id: buildanki
+        uses: uraimo/run-on-arch-action@v2.1.1
+        with:
+          arch: aarch64
+          distro: ubuntu20.04
+          run: |
+            apt-get update -q -y
+            ln -snf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+            echo Asia/Shanghai > /etc/timezone
+            apt-get install -q -y curl wget apt-utils git rsync findutils curl gcc g++ rustc cargo nodejs python3 python3-pip python3-pyqt5 pyqt5-dev-tools python-is-python3
+            curl -L https://github.com/bazelbuild/bazel/releases/download/${{ env.BAZEL_VER }}/bazel-${{ env.BAZEL_VER }}-linux-arm64 -o /usr/local/bin/bazel
+            chmod +x /usr/local/bin/bazel
+            wget -P anki-build https://github.com/ankitects/anki/archive/refs/tags/${{ env.ANKI_VER }}.tar.gz --no-check-certificate
+            tar -zxf anki-build/${{ env.ANKI_VER }}.tar.gz --strip-components 1 -C anki-build
+            cd anki-build
+            echo "build --action_env=PYTHON_SITE_PACKAGES=/usr/lib/python3/dist-packages" >> user.bazelrc
+            mkdir cache
+            export TEST_TMPDIR=/home/runner/work/anki-build/anki-build/anki-build/cache
+            bazel build -k -c opt dist
+            cd bazel-bin
+            tar -xf dist.tar
+            cd bazel-dist
+            tar -czf anki-${{ env.ANKI_VER }}-aarch64.tar.gz *.whl
+
+      - name: Create Release
+        id: create_release
+        uses: ncipollo/release-action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          allowUpdates: true
+          tag: v${{ env.ANKI_VER }}
+          name: ${{ env.ANKI_VER }}
+          body: |
+            anki-${{ env.ANKI_VER }}
+          draft: false
+          prerelease: false
+          artifacts: /home/runner/work/anki-build/anki-build/anki-build/bazel-bin/bazel-dist/anki-${{ env.ANKI_VER }}-aarch64.tar.gz
+
+  armv7_job:
+    runs-on: ubuntu-20.04
+    name: Build on ubuntu-20.04 armv7
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v2.1.0
+
+      - name: mount anki-build
+        run: |
+          mkdir anki-build
+          chmod 777 anki-build
+          sudo mount -t tmpfs -o size=4G tmpfs anki-build
+
+      - name: Build anki
+        id: buildanki
+        uses: uraimo/run-on-arch-action@v2.1.1
+        with:
+          arch: armv7
+          distro: ubuntu20.04
+          run: |
+            apt-get update -q -y
+            ln -snf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+            echo Asia/Shanghai > /etc/timezone
+            apt-get install -q -y curl wget apt-utils git rsync findutils curl gcc g++ rustc cargo nodejs python3 python3-pip python3-pyqt5 pyqt5-dev-tools python-is-python3 protobuf-compiler unzip openjdk-11-jdk
+            curl -L https://github.com/koenvervloesem/bazel-on-arm/releases/download/v${{ env.BAZEL_VER }}/bazel-${{ env.BAZEL_VER }} -o /usr/local/bin/bazel
+            chmod +x /usr/local/bin/bazel
+            wget -P anki-build https://github.com/ankitects/anki/archive/refs/tags/${{ env.ANKI_VER }}.tar.gz --no-check-certificate
+            tar -zxf anki-build/${{ env.ANKI_VER }}.tar.gz --strip-components 1 -C anki-build
+            cd anki-build
+            mkdir esbuild_toolchain
+            wget -P esbuild_toolchain https://github.com/ankitects/esbuild_toolchain/archive/refs/tags/anki-${{ env.ESBUILD_TOOLCHAIN_VER }}.tar.gz --no-check-certificate
+            tar -zxf esbuild_toolchain/*.tar.gz --strip-components 1 -C esbuild_toolchain
+            mkdir build_bazel_rules_nodejs
+            wget -P build_bazel_rules_nodejs https://github.com/bazelbuild/rules_nodejs/releases/download/${{ env.RULES_BODEJS_VER }}/rules_nodejs-${{ env.RULES_BODEJS_VER }}.tar.gz --no-check-certificate
+            tar -zxf build_bazel_rules_nodejs/*.tar.gz --strip-components 1 -C build_bazel_rules_nodejs
+            touch build_bazel_rules_nodejs/WORKSPACE
+            mkdir rules_rust
+            wget -P /tmp https://github.com/bazelbuild/rules_rust/archive/${{ env.RULES_RUST_VER }}.zip --no-check-certificate
+            unzip -d /tmp /tmp/${{ env.RULES_RUST_VER }}.zip
+            cp -rf /tmp/rules_rust-${{ env.RULES_RUST_VER }}/* rules_rust
+            mkdir -p local_protoc/bin
+            touch local_protoc/WORKSPACE
+            ln -s /usr/bin/protoc local_protoc/bin/protoc
+            patch -p1 < ../patches/${{ env.ANKI_VER }}/arm/ubuntu/anki_cargo.patch
+            patch -p1 < ../patches/${{ env.ANKI_VER }}/arm/ubuntu/anki_Cargo.toml.patch
+            patch -p1 < ../patches/${{ env.ANKI_VER }}/arm/ubuntu/anki_pip.patch
+            patch -p1 < ../patches/${{ env.ANKI_VER }}/arm/ubuntu/anki_platforms.patch
+            patch -p1 < ../patches/${{ env.ANKI_VER }}/arm/ubuntu/anki_proto.patch
+            patch -p1 < ../patches/${{ env.ANKI_VER }}/arm/ubuntu/anki_pylib.patch
+            patch -p1 < ../patches/${{ env.ANKI_VER }}/arm/ubuntu/anki_repos.bzl.patch
+            patch -p1 < ../patches/${{ env.ANKI_VER }}/arm/ubuntu/anki_rslib.patch
+            patch -p1 < ../patches/${{ env.ANKI_VER }}/arm/ubuntu/anki_scripts.patch
+            patch -p1 < ../patches/${{ env.ANKI_VER }}/arm/ubuntu/build_bazel_rules_nodejs.patch
+            patch -p1 < ../patches/${{ env.ANKI_VER }}/arm/ubuntu/esbuild_toolchain.patch
+            patch -p1 < ../patches/${{ env.ANKI_VER }}/arm/ubuntu/local_protoc.patch
+            patch -p1 < ../patches/${{ env.ANKI_VER }}/arm/ubuntu/rules_rust.patch
+            echo "build --action_env=PYTHON_SITE_PACKAGES=/usr/lib/python3/dist-packages" >> user.bazelrc
+            mkdir cache
+            export TEST_TMPDIR=/home/runner/work/anki-build/anki-build/anki-build/cache
+            bazel build -k -c opt dist
+            cd bazel-bin
+            tar -xf dist.tar
+            cd bazel-dist
+            tar -czf anki-${{ env.ANKI_VER }}-armv7l.tar.gz *.whl
+
+      - name: Create Release
+        id: create_release
+        uses: ncipollo/release-action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          allowUpdates: true
+          tag: v${{ env.ANKI_VER }}
+          name: ${{ env.ANKI_VER }}
+          body: |
+            anki-${{ env.ANKI_VER }}
+          draft: false
+          prerelease: false
+          artifacts: /home/runner/work/anki-build/anki-build/anki-build/bazel-bin/bazel-dist/anki-${{ env.ANKI_VER }}-armv7l.tar.gz
